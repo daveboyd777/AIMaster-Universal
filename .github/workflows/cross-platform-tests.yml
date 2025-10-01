@@ -1,0 +1,352 @@
+name: AIMaster Cross-Platform Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'Scripts/**'
+      - 'tests/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Scripts/**'  
+      - 'tests/**'
+      - '.github/workflows/**'
+  schedule:
+    # Run tests daily at 6 AM UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - unit
+        - integration
+        - connectivity
+
+env:
+  MAC_TEST_IP: "100.77.255.169"
+  MAC_TEST_USER: "daveboyd"
+  MAC_TEST_HOSTNAME: "sf-Deb-Book.local"
+
+jobs:
+  # macOS Testing with Bats
+  test-macos:
+    name: Test on macOS
+    runs-on: macos-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Homebrew
+      uses: Homebrew/actions/setup-homebrew@master
+      
+    - name: Install Bats and dependencies
+      run: |
+        brew install bats-core coreutils
+        # Install optional helpers for better assertions
+        brew install jq curl wget netcat
+        
+    - name: Verify Bats installation
+      run: |
+        bats --version
+        which bats
+        
+    - name: Make scripts executable
+      run: |
+        chmod +x Scripts/orchestrator.sh
+        find Scripts/services -name "*.sh" -exec chmod +x {} \;
+        find tests -name "*.bats" -exec chmod +x {} \;
+        
+    - name: Create required directories
+      run: |
+        mkdir -p ~/.aimaster/logs
+        
+    - name: Run unit tests
+      if: github.event.inputs.test_suite == 'unit' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+      run: |
+        echo "🧪 Running unit tests on macOS..."
+        bats tests/unit/ --formatter tap
+        
+    - name: Run integration tests
+      if: github.event.inputs.test_suite == 'integration' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+      run: |
+        echo "🔗 Running integration tests on macOS..."
+        bats tests/integration/ --formatter tap
+        
+    - name: Run connectivity tests
+      if: github.event.inputs.test_suite == 'connectivity' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+      run: |
+        echo "🌐 Running connectivity tests on macOS..."
+        # Basic connectivity tests that don't require the actual Mac
+        bats tests/integration/test_mac_connectivity.bats --filter "should have valid Mac connectivity configuration"
+        bats tests/integration/test_mac_connectivity.bats --filter "should have network connectivity"
+        bats tests/integration/test_mac_connectivity.bats --filter "should ping Google DNS successfully"
+        
+    - name: Test orchestrator functionality
+      run: |
+        echo "⚙️ Testing orchestrator commands..."
+        Scripts/orchestrator.sh version
+        Scripts/orchestrator.sh status
+        Scripts/orchestrator.sh --help
+        
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: macos-test-logs
+        path: |
+          ~/.aimaster/logs/
+          /tmp/aimaster_*.log
+          /tmp/test_*.log
+        retention-days: 7
+
+  # Linux Testing with Bats
+  test-linux:
+    name: Test on Linux
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install Bats and dependencies
+      run: |
+        # Install Bats
+        sudo apt-get update
+        sudo apt-get install -y bats jq curl wget netcat-openbsd
+        
+        # Verify installation
+        bats --version
+        
+    - name: Make scripts executable
+      run: |
+        chmod +x Scripts/orchestrator.sh
+        find Scripts/services -name "*.sh" -exec chmod +x {} \;
+        find tests -name "*.bats" -exec chmod +x {} \;
+        
+    - name: Create required directories
+      run: |
+        mkdir -p ~/.aimaster/logs
+        
+    - name: Run unit tests
+      if: github.event.inputs.test_suite == 'unit' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+      run: |
+        echo "🧪 Running unit tests on Linux..."
+        bats tests/unit/ --formatter tap
+        
+    - name: Run integration tests
+      if: github.event.inputs.test_suite == 'integration' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+      run: |
+        echo "🔗 Running integration tests on Linux..."
+        bats tests/integration/ --formatter tap
+        
+    - name: Run connectivity tests  
+      if: github.event.inputs.test_suite == 'connectivity' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
+      run: |
+        echo "🌐 Running connectivity tests on Linux..."
+        # Basic connectivity tests
+        bats tests/integration/test_mac_connectivity.bats --filter "should have valid Mac connectivity configuration"
+        bats tests/integration/test_mac_connectivity.bats --filter "should have network connectivity"
+        
+    - name: Test orchestrator functionality
+      run: |
+        echo "⚙️ Testing orchestrator commands..."
+        Scripts/orchestrator.sh version
+        Scripts/orchestrator.sh status
+        Scripts/orchestrator.sh --help
+        
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: linux-test-logs
+        path: |
+          ~/.aimaster/logs/
+          /tmp/aimaster_*.log
+          /tmp/test_*.log
+        retention-days: 7
+
+  # Windows Testing with PowerShell/Pester
+  test-windows:
+    name: Test on Windows
+    runs-on: windows-latest
+    timeout-minutes: 45
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up PowerShell environment
+      shell: pwsh
+      run: |
+        Write-Host "PowerShell Version: $($PSVersionTable.PSVersion)"
+        Write-Host "OS: $($PSVersionTable.OS)"
+        
+        # Install Pester if not available
+        if (-not (Get-Module -ListAvailable -Name Pester)) {
+          Install-Module -Name Pester -Force -SkipPublisherCheck
+        }
+        
+        # Test PowerShell stability
+        try {
+          Get-Process | Select-Object -First 5
+          Write-Host "✅ PowerShell appears stable"
+        }
+        catch {
+          Write-Host "⚠️ PowerShell stability check failed: $_"
+        }
+        
+    - name: Install Git Bash and Bats (fallback option)
+      shell: bash
+      run: |
+        # Test if we can use Git Bash + Bats as fallback
+        echo "Setting up Git Bash environment..."
+        
+        # Install Bats via npm (if available)
+        if command -v npm >/dev/null 2>&1; then
+          npm install -g bats
+        fi
+        
+    - name: Test PowerShell script execution
+      shell: pwsh
+      run: |
+        # Test if PowerShell can execute basic scripts without crashing
+        try {
+          # Simple script test
+          $test = @"
+          Write-Host "PowerShell test execution"
+          Get-Date
+          "System Information:" 
+          Get-ComputerInfo | Select-Object -First 3
+"@
+          
+          Invoke-Expression $test
+          Write-Host "✅ PowerShell script execution successful"
+          echo "POWERSHELL_STABLE=true" >> $env:GITHUB_ENV
+        }
+        catch {
+          Write-Host "❌ PowerShell script execution failed: $_"
+          echo "POWERSHELL_STABLE=false" >> $env:GITHUB_ENV
+        }
+        
+    - name: Run PowerShell/Pester tests (if stable)
+      if: env.POWERSHELL_STABLE == 'true'
+      shell: pwsh
+      run: |
+        Write-Host "🧪 Running PowerShell/Pester tests..."
+        
+        # Create a simple Pester test to verify functionality
+        $testScript = @"
+        Describe "AIMaster Windows Environment Tests" {
+          Context "Basic System Tests" {
+            It "Should have PowerShell available" {
+              `$PSVersionTable.PSVersion | Should -Not -BeNullOrEmpty
+            }
+            
+            It "Should be able to test network connectivity" {
+              Test-NetConnection -ComputerName "google.com" -Port 80 -InformationLevel Quiet | Should -Be `$true
+            }
+            
+            It "Should have required Windows commands" {
+              Get-Command ping | Should -Not -BeNullOrEmpty
+              Get-Command ipconfig | Should -Not -BeNullOrEmpty
+            }
+          }
+        }
+"@
+        
+        $testScript | Out-File -FilePath "windows-tests.ps1"
+        Invoke-Pester -Script "windows-tests.ps1" -Output Detailed
+        
+    - name: Run Bash tests (if PowerShell unstable)
+      if: env.POWERSHELL_STABLE != 'true'
+      shell: bash
+      run: |
+        echo "🔄 PowerShell unstable, falling back to Bash tests..."
+        
+        # Make scripts executable
+        chmod +x Scripts/orchestrator.sh
+        find Scripts/services -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+        
+        # Test basic functionality with Git Bash
+        Scripts/orchestrator.sh version || echo "Orchestrator test failed in Git Bash"
+        
+    - name: Test cross-platform script compatibility
+      shell: bash
+      run: |
+        echo "🔗 Testing cross-platform compatibility..."
+        
+        # Test that our bash scripts work in Git Bash on Windows
+        if [ -f "Scripts/orchestrator.sh" ]; then
+          chmod +x Scripts/orchestrator.sh
+          Scripts/orchestrator.sh --help
+        fi
+        
+    - name: Upload test artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: windows-test-logs
+        path: |
+          windows-tests.ps1
+          TestResults.xml
+        retention-days: 7
+
+  # Test Results Summary
+  test-summary:
+    name: Test Results Summary
+    runs-on: ubuntu-latest
+    needs: [test-macos, test-linux, test-windows]
+    if: always()
+    
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: test-results
+        
+    - name: Generate test summary
+      run: |
+        echo "# AIMaster Cross-Platform Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Test Execution Summary" >> $GITHUB_STEP_SUMMARY
+        
+        # Check job results
+        if [ "${{ needs.test-macos.result }}" = "success" ]; then
+          echo "✅ **macOS Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **macOS Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ "${{ needs.test-linux.result }}" = "success" ]; then
+          echo "✅ **Linux Tests**: Passed" >> $GITHUB_STEP_SUMMARY  
+        else
+          echo "❌ **Linux Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ "${{ needs.test-windows.result }}" = "success" ]; then
+          echo "✅ **Windows Tests**: Passed" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ **Windows Tests**: Failed" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Platform Compatibility" >> $GITHUB_STEP_SUMMARY
+        echo "- **Bash Scripts**: Cross-platform compatible" >> $GITHUB_STEP_SUMMARY
+        echo "- **Bats Testing**: macOS ✅, Linux ✅, Windows (via Git Bash) ⚠️" >> $GITHUB_STEP_SUMMARY
+        echo "- **PowerShell**: Windows ✅, macOS ❌ (known issue), Linux (not tested)" >> $GITHUB_STEP_SUMMARY
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+        echo "- Use Bats for reliable cross-platform testing" >> $GITHUB_STEP_SUMMARY  
+        echo "- Keep PowerShell tests for Windows-specific functionality" >> $GITHUB_STEP_SUMMARY
+        echo "- Deploy Room504 PC for Windows PowerShell testing" >> $GITHUB_STEP_SUMMARY

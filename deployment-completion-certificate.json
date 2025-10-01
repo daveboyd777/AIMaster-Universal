@@ -1,0 +1,45 @@
+{
+    "aimaster_deployment_certificate": {
+        "system": {
+            "hostname": "sf-Deb-Book.local",
+            "ip_address": "100.77.255.169",
+            "username": "daveboyd",
+            "macos_version": "15.7.1",
+            "completion_timestamp": "2025-10-01T10:30:58-04:00"
+        },
+        "deployment": {
+            "status": "SUCCESS",
+            "completion_percentage": 100,
+            "success_score": "4/4",
+            "ssh_status": "WORKING",
+            "files_created": 4
+        },
+        "services": {
+            "ssh_enabled": true,
+            "remote_login_enabled": true,
+            "management_services_configured": true,
+            "file_sharing_configured": true
+        },
+        "integration": {
+            "aimaster_directory": "/Users/daveboyd/AIMaster-Universal",
+            "config_file": "/Users/daveboyd/AIMaster-Universal/RemoteConnections/mac-sf-Deb-Book.json",
+            "connection_scripts": {
+                "quick_connect": "/Users/daveboyd/AIMaster-Universal/Scripts/connect-to-mac.sh",
+                "test_connection": "/Users/daveboyd/AIMaster-Universal/Scripts/test-mac-connection.sh",
+                "powershell_function": "/Users/daveboyd/AIMaster-Universal/Functions/Connect-Mac.ps1"
+            }
+        },
+        "access_methods": {
+            "primary_ssh": "ssh daveboyd@100.77.255.169",
+            "local_ssh": "ssh daveboyd@localhost",
+            "vnc": "vnc://100.77.255.169:5900",
+            "smb": "smb://100.77.255.169"
+        },
+        "certification": {
+            "deployed_by": "AIMaster Mac Deployment Script v1.0",
+            "certified_at": "2025-10-01T10:30:58-04:00",
+            "valid_until": "2026-10-01T10:30:58-04:00",
+            "certificate_id": "AIMASTER-MAC-20251001103058"
+        }
+    }
+}

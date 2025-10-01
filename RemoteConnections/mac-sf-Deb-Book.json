@@ -1,0 +1,65 @@
+{
+    "system": {
+        "hostname": "sf-Deb-Book.local",
+        "short_hostname": "sf-Deb-Book",
+        "fqdn": "sf-Deb-Book.local",
+        "system_name": "Deborah's MacBook Pro",
+        "username": "daveboyd",
+        "serial_number": "C02YW4RCLVCJ",
+        "hardware_model": "MacBookPro15,1",
+        "macos_version": "15.7.1",
+        "registered_at": "2025-10-01T10:28:49-04:00"
+    },
+    "network": {
+        "primary_ip": "100.77.255.169",
+        "wifi_ip": "",
+        "local_addresses": [
+            "127.0.0.1",
+            "localhost",
+            "sf-Deb-Book.local",
+            "sf-Deb-Book"
+        ]
+    },
+    "services": {
+        "ssh": {
+            "enabled": true,
+            "port": 22,
+            "protocol": "ssh",
+            "connection_string": "ssh daveboyd@100.77.255.169",
+            "test_command": "ssh -o ConnectTimeout=5 daveboyd@100.77.255.169 'echo SSH_OK'"
+        },
+        "vnc": {
+            "enabled": true,
+            "port": 5900,
+            "protocol": "vnc",
+            "connection_string": "vnc://100.77.255.169:5900",
+            "password_hint": "aimaster123",
+            "test_command": "nc -z 100.77.255.169 5900"
+        },
+        "remote_management": {
+            "enabled": true,
+            "protocol": "ard",
+            "connection_string": "ard://100.77.255.169",
+            "description": "Apple Remote Desktop"
+        },
+        "file_sharing": {
+            "enabled": true,
+            "smb_port": 445,
+            "afp_port": 548,
+            "smb_connection": "smb://100.77.255.169",
+            "afp_connection": "afp://100.77.255.169"
+        }
+    },
+    "access_methods": {
+        "primary": "ssh daveboyd@100.77.255.169",
+        "secondary": "ssh daveboyd@sf-Deb-Book.local",
+        "local": "ssh daveboyd@localhost",
+        "vnc": "vnc://100.77.255.169:5900"
+    },
+    "aimaster": {
+        "deployment_version": "1.0",
+        "last_updated": "2025-10-01T10:28:49-04:00",
+        "services_count": 5,
+        "status": "DEPLOYED"
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "orchestrator": {
+        "version": "1.0.0",
+        "platform": "macOS",
+        "created": "2025-10-01T18:31:08Z",
+        "log_level": "INFO",
+        "parallel_execution": true,
+        "timeout_seconds": 30
+    },
+    "services": {
+        "mac_connectivity": {
+            "enabled": true,
+            "script": "mac-connectivity.sh",
+            "timeout": 60,
+            "retry_count": 3
+        },
+        "windows_management": {
+            "enabled": true,
+            "script": "windows-management.sh", 
+            "timeout": 45,
+            "retry_count": 2
+        },
+        "linux_operations": {
+            "enabled": true,
+            "script": "linux-operations.sh",
+            "timeout": 30,
+            "retry_count": 2
+        },
+        "android_integration": {
+            "enabled": false,
+            "script": "android-integration.sh",
+            "timeout": 90,
+            "retry_count": 1
+        }
+    },
+    "targets": {
+        "mac": {
+            "ip_address": "100.77.255.169",
+            "username": "daveboyd", 
+            "hostname": "sf-Deb-Book.local"
+        },
+        "windows": {
+            "ip_address": "",
+            "username": "",
+            "hostname": ""
+        }
+    }
+}
