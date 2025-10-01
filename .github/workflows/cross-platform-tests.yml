@@ -45,8 +45,7 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Homebrew
-      uses: Homebrew/actions/setup-homebrew@master
+    # Homebrew should be pre-installed on macOS runners
       
     - name: Install Bats and dependencies
       run: |
