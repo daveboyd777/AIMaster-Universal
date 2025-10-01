@@ -86,9 +86,7 @@ jobs:
       run: |
         echo "🌐 Running connectivity tests on macOS..."
         # Basic connectivity tests that don't require the actual Mac
-        bats tests/integration/test_mac_connectivity.bats --filter "should have valid Mac connectivity configuration"
-        bats tests/integration/test_mac_connectivity.bats --filter "should have network connectivity"
-        bats tests/integration/test_mac_connectivity.bats --filter "should ping Google DNS successfully"
+        bats tests/integration/test_mac_connectivity_ci.bats
         
     - name: Test orchestrator functionality
       run: |
@@ -153,9 +151,8 @@ jobs:
       if: github.event.inputs.test_suite == 'connectivity' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
       run: |
         echo "🌐 Running connectivity tests on Linux..."
-        # Basic connectivity tests
-        bats tests/integration/test_mac_connectivity.bats --filter "should have valid Mac connectivity configuration"
-        bats tests/integration/test_mac_connectivity.bats --filter "should have network connectivity"
+        # Basic connectivity tests (safe for CI)
+        bats tests/integration/test_mac_connectivity_ci.bats
         
     - name: Test orchestrator functionality
       run: |
