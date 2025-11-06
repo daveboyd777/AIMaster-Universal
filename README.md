@@ -178,27 +178,23 @@ wsl --install
 The project uses [Bats (Bash Automated Testing System)](https://bats-core.readthedocs.io/) for testing, replacing the broken PowerShell/Pester setup on macOS.
 
 ```bash
-# Run all tests
-bats tests/
+# Run all tests (recommended)
+./run-tests.sh
 
 # Run specific test suites
-bats tests/unit/                    # Unit tests
-bats tests/integration/             # Integration tests
+./run-tests.sh tests/unit/          # Unit tests only
+./run-tests.sh tests/integration/   # Integration tests only
 
 # Run specific test file
-bats tests/unit/test_orchestrator.bats
+./run-tests.sh tests/unit/test_orchestrator.bats
 
-# Run tests with specific filter
-bats tests/integration/test_mac_connectivity.bats --filter "should ping Mac successfully"
+# Verbose output (use bats directly if needed)
+bats tests/unit/test_orchestrator.bats --verbose-run
 
-# Verbose output
-bats tests/ --verbose-run
+# TAP format output (use bats directly if needed) 
+bats tests/unit/ --formatter tap
 
-# TAP format output
-bats tests/ --formatter tap
-
-# Parallel test execution
-bats tests/ --jobs 4
+# For parallel execution, use the run-tests.sh script
 ```
 
 ### Test Categories
@@ -214,12 +210,14 @@ bats tests/ --jobs 4
 ### Current Test Coverage
 
 ```bash
-# Check current test results
-bats tests/unit/test_platform_detection.bats     # 18 tests
-bats tests/unit/test_orchestrator.bats           # 23 tests  
-bats tests/integration/test_mac_connectivity.bats # 13 tests
+# Check current test results with new test runner
+./run-tests.sh tests/unit/test_platform_detection.bats     # 18 tests
+./run-tests.sh tests/unit/test_orchestrator.bats           # 23 tests  
+./run-tests.sh tests/integration/                          # 23 integration tests
 
-# Total: 54+ tests covering core functionality
+# Total: 64 tests covering core functionality
+# Unit tests: 41 tests (all passing)
+# Integration tests: 23 tests (environment dependent)
 ```
 
 ## 🏗️ Architecture
@@ -281,7 +279,7 @@ The orchestrator automatically creates a default configuration file:
 ```json
 {
   "orchestrator": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "platform": "macOS",
     "log_level": "INFO",
     "parallel_execution": true,
@@ -387,11 +385,15 @@ The orchestrator automatically creates a default configuration file:
 
 ### CI/CD Integration
 
-The project includes comprehensive CI/CD workflows for cross-platform testing:
+The project includes comprehensive CI/CD workflows for cross-platform testing using the improved test runner:
 
-- **macOS**: Native Bats testing with Homebrew dependencies
-- **Linux**: Bats testing with apt-get dependencies  
+- **macOS**: Native Bats testing with Homebrew dependencies using `./run-tests.sh`
+- **Linux**: Bats testing with apt-get dependencies using `./run-tests.sh` 
 - **Windows**: PowerShell/Pester testing with Git Bash fallback
+- **GitHub Actions**: Automated testing on push, PR, and daily schedule
+- **Test Artifacts**: Automatic upload of logs and test results
+
+The pipeline runs the full 64-test suite across all platforms and provides detailed test summaries.
 
 ## 🐛 Troubleshooting
 
@@ -491,4 +493,4 @@ This project is part of the AIMaster automation framework.
 
 ---
 
-**Status**: ✅ Active Development | 🧪 54+ Tests | 🌍 Cross-Platform | 📈 CI/CD Ready
+**Status**: ✅ v2.0.0 Stable | 🧪 64 Tests | 🌍 Cross-Platform | 📈 CI/CD Ready

@@ -68,24 +68,27 @@ jobs:
       run: |
         mkdir -p ~/.aimaster/logs
         
+    - name: Make test runner executable
+      run: chmod +x run-tests.sh
+        
     - name: Run unit tests
       if: github.event.inputs.test_suite == 'unit' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
       run: |
         echo "🧪 Running unit tests on macOS..."
-        bats tests/unit/ --formatter tap
+        ./run-tests.sh tests/unit/
         
     - name: Run integration tests
       if: github.event.inputs.test_suite == 'integration' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
       run: |
         echo "🔗 Running integration tests on macOS..."
-        bats tests/integration/ --formatter tap
+        ./run-tests.sh tests/integration/
         
     - name: Run connectivity tests
       if: github.event.inputs.test_suite == 'connectivity' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
       run: |
         echo "🌐 Running connectivity tests on macOS..."
         # Basic connectivity tests that don't require the actual Mac
-        bats tests/integration/test_mac_connectivity_ci.bats
+        ./run-tests.sh tests/integration/test_mac_connectivity_ci.bats
         
     - name: Test orchestrator functionality
       run: |
@@ -127,6 +130,7 @@ jobs:
     - name: Make scripts executable
       run: |
         chmod +x Scripts/orchestrator.sh
+        chmod +x run-tests.sh
         find Scripts/services -name "*.sh" -exec chmod +x {} \;
         find tests -name "*.bats" -exec chmod +x {} \;
         
@@ -138,20 +142,20 @@ jobs:
       if: github.event.inputs.test_suite == 'unit' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
       run: |
         echo "🧪 Running unit tests on Linux..."
-        bats tests/unit/ --formatter tap
+        ./run-tests.sh tests/unit/
         
     - name: Run integration tests
       if: github.event.inputs.test_suite == 'integration' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
       run: |
         echo "🔗 Running integration tests on Linux..."
-        bats tests/integration/ --formatter tap
+        ./run-tests.sh tests/integration/
         
     - name: Run connectivity tests  
       if: github.event.inputs.test_suite == 'connectivity' || github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == ''
       run: |
         echo "🌐 Running connectivity tests on Linux..."
         # Basic connectivity tests (safe for CI)
-        bats tests/integration/test_mac_connectivity_ci.bats
+        ./run-tests.sh tests/integration/test_mac_connectivity_ci.bats
         
     - name: Test orchestrator functionality
       run: |

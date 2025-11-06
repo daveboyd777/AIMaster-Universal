@@ -75,12 +75,23 @@ function run_with_timeout() {
 }
 
 # Global configuration
-ORCHESTRATOR_VERSION="1.0.0"
+ORCHESTRATOR_VERSION="2.0.0"
 LOG_FILE="$LOGS_DIR/orchestrator_$(date +%Y%m%d_%H%M%S).log"
 CONFIG_FILE="$CONFIG_DIR/orchestrator.json"
 
 # Initialize logging
 init_logging "$LOG_FILE"
+
+# CI3 Framework Integration
+CI3_ENABLED=${CI3_ENABLED:-false}
+if [[ "$CI3_ENABLED" == "true" ]]; then
+    if [[ -f "$LIB_DIR/ci3-core.sh" ]]; then
+        source "$LIB_DIR/ci3-core.sh"
+        log_info "🌌 I3/Atlas Framework integration enabled (inspired by interstellar comet I3/Atlas)"
+    else
+        log_warn "⚠️ CI3 Framework requested but ci3-core.sh not found"
+    fi
+fi
 
 function show_usage() {
     cat << EOF
@@ -100,9 +111,19 @@ Commands:
 
 Service Commands:
     test-mac           Test Mac connectivity
+    test-room504       Test Room504 PC tunneling
+    find-glinet        Find GL-iNet router WiFi networks
     test-windows       Test Windows connectivity  
     test-linux         Test Linux connectivity
     test-android       Test Android connectivity
+
+I3/Atlas Framework Commands (when enabled):
+    ci3-status         Show I3/Atlas framework status
+    ci3-init           Initialize I3/Atlas framework
+    atlas-analyze      Analyze network topology (inspired by ATLAS observatory)
+    scale-transition   Transition between cosmic scales (like comet trajectory analysis)
+    3i-analysis        Run I3 analysis (exploring possible interstellar intelligence patterns)
+    glinet-ci3         GL-iNet management with I3/Atlas enhancement
 
 Options:
     -h, --help         Show this help
@@ -227,6 +248,7 @@ function discover_systems() {
     local services=(
         "mac-connectivity.sh"
         "startup-test-mac-connectivity.sh"
+        "test-room504-tunneling.sh"
     )
     
     if [[ "$parallel_mode" == "true" ]]; then
@@ -330,8 +352,9 @@ function main() {
     local quiet=false
     local parallel=false
     local timeout=""
+    local -a remaining_args=()
     
-    # Parse options
+    # Parse options and collect remaining arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
             -h|--help)
@@ -362,7 +385,13 @@ function main() {
                 shift 2
                 ;;
             *)
-                command="$1"
+                if [[ "$command" == "help" ]]; then
+                    command="$1"
+                elif [[ -z "$command" ]]; then
+                    command="$1"
+                else
+                    remaining_args+=("$1")
+                fi
                 shift
                 ;;
         esac
@@ -392,6 +421,12 @@ function main() {
             ;;
         test-mac)
             run_service "startup-test-mac-connectivity.sh"
+            ;;
+        test-room504)
+            run_service "test-room504-tunneling.sh"
+            ;;
+        find-glinet)
+            run_service "list-wifi-networks.sh"
             ;;
         test-windows)
             log_warn "Windows testing not yet implemented"
@@ -430,6 +465,131 @@ function main() {
             echo "AIMaster Universal Orchestrator v$ORCHESTRATOR_VERSION"
             echo "Platform: $(detect_platform)"
             echo "Bash: $BASH_VERSION"
+            if [[ "$CI3_ENABLED" == "true" ]]; then
+                echo "I3/Atlas Framework: $(get_ci3_info status 2>/dev/null || echo 'available (inspired by interstellar comet I3/Atlas)')"
+            fi
+            ;;
+        # CI3 Framework Commands
+        ci3-status)
+            if [[ "$CI3_ENABLED" == "true" ]]; then
+                # Auto-initialize if needed
+                if ! command -v show_ci3_status >/dev/null 2>&1; then
+                    init_ci3_framework "$CONFIG_DIR/ci3.json" false
+                    if command -v export_ci3_functions >/dev/null 2>&1; then
+                        export_ci3_functions
+                    fi
+                fi
+                
+                if command -v show_ci3_status >/dev/null 2>&1; then
+                    show_ci3_status
+                else
+                    log_error "I3/Atlas Framework functions not available after initialization"
+                    exit 1
+                fi
+            else
+                log_error "I3/Atlas Framework not enabled or not available"
+                log_info "To enable I3/Atlas: export CI3_ENABLED=true"
+                exit 1
+            fi
+            ;;
+        ci3-init)
+            if [[ "$CI3_ENABLED" == "true" ]] && command -v init_ci3_framework >/dev/null 2>&1; then
+                init_ci3_framework "$CONFIG_DIR/ci3.json" true
+                
+                # Export CI3 functions for use within orchestrator
+                if command -v export_ci3_functions >/dev/null 2>&1; then
+                    export_ci3_functions
+                else
+                    log_warn "⚠️ Warning: export_ci3_functions not available"
+                fi
+            else
+                log_error "I3/Atlas Framework not enabled or not available"
+                exit 1
+            fi
+            ;;
+        atlas-analyze)
+            if [[ "$CI3_ENABLED" == "true" ]]; then
+                # Auto-initialize if needed
+                if ! command -v analyze_network_topology >/dev/null 2>&1; then
+                    init_ci3_framework "$CONFIG_DIR/ci3.json" false
+                    if command -v export_ci3_functions >/dev/null 2>&1; then
+                        export_ci3_functions
+                    fi
+                fi
+                
+                if command -v analyze_network_topology >/dev/null 2>&1; then
+                    local network_data="$(discover_systems false 2>/dev/null || echo '')"
+                    analyze_network_topology "$network_data" "comprehensive"
+                else
+                    log_error "I3/Atlas Engine not available after initialization"
+                    exit 1
+                fi
+            else
+                log_error "I3/Atlas Framework not enabled"
+                log_info "To enable I3/Atlas: export CI3_ENABLED=true"
+                exit 1
+            fi
+            ;;
+        scale-transition)
+            if [[ "$CI3_ENABLED" == "true" ]]; then
+                # Auto-initialize if needed
+                if ! command -v transition_scale >/dev/null 2>&1; then
+                    init_ci3_framework "$CONFIG_DIR/ci3.json" false
+                    if command -v export_ci3_functions >/dev/null 2>&1; then
+                        export_ci3_functions
+                    fi
+                fi
+                
+                if command -v transition_scale >/dev/null 2>&1; then
+                    # Handle additional arguments properly
+                    log_debug "Debug: remaining_args=(${remaining_args[*]})"
+                    local target_scale="${remaining_args[0]:-ecosystem}"
+                    local operation_type="${remaining_args[1]:-analysis}"
+                    log_debug "Debug: target_scale='$target_scale', operation_type='$operation_type'"
+                    transition_scale "$target_scale" "$operation_type"
+                else
+                    log_error "I3/Atlas Scale Manager not available after initialization"
+                    exit 1
+                fi
+            else
+                log_error "I3/Atlas Framework not enabled"
+                log_info "To enable I3/Atlas: export CI3_ENABLED=true"
+                exit 1
+            fi
+            ;;
+        3i-analysis)
+            if [[ "$CI3_ENABLED" == "true" ]]; then
+                # Auto-initialize if needed
+                if ! command -v analyze_network_intelligence >/dev/null 2>&1; then
+                    init_ci3_framework "$CONFIG_DIR/ci3.json" false
+                    if command -v export_ci3_functions >/dev/null 2>&1; then
+                        export_ci3_functions
+                    fi
+                fi
+                
+                if command -v analyze_network_intelligence >/dev/null 2>&1; then
+                    local network_data="$(discover_systems false 2>/dev/null || echo '')"
+                    analyze_network_intelligence "$network_data"
+                else
+                    log_error "I3/Atlas Intelligence Framework not available after initialization"
+                    exit 1
+                fi
+            else
+                log_error "I3/Atlas Framework not enabled"
+                log_info "To enable I3/Atlas: export CI3_ENABLED=true"
+                exit 1
+            fi
+            ;;
+        glinet-ci3)
+            if [[ "$CI3_ENABLED" == "true" ]]; then
+                log_info "🌌 GL-iNet management with I3/Atlas enhancement (cosmic-scale network analysis)"
+                # Apply ecosystem perspective to GL-iNet operations
+                transition_scale "ecosystem" "glinet_management" 2>/dev/null || true
+                run_service "list-wifi-networks.sh"
+            else
+                log_error "I3/Atlas Framework not enabled"
+                exit 1
+            fi
             ;;
         help|*)
             show_usage

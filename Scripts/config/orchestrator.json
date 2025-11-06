@@ -1,6 +1,6 @@
 {
     "orchestrator": {
-        "version": "1.0.0",
+        "version": "2.0.0",
         "platform": "macOS",
         "created": "2025-10-01T18:31:08Z",
         "log_level": "INFO",
@@ -31,11 +31,17 @@
             "script": "android-integration.sh",
             "timeout": 90,
             "retry_count": 1
+        },
+        "vnc_service": {
+            "enabled": true,
+            "script": "vnc-service-manager.sh",
+            "timeout": 60,
+            "retry_count": 2
         }
     },
     "targets": {
         "mac": {
-            "ip_address": "100.77.255.169",
+            "ip_address": "100.75.135.113",
             "username": "daveboyd", 
             "hostname": "sf-Deb-Book.local"
         },

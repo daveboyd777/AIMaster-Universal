@@ -89,10 +89,10 @@ setup() {
 }
 
 @test "should handle service execution" {
-    # Test service command with a non-existent service - should show help
+    # Test service command with a non-existent service - should show help and error
     run "$ORCHESTRATOR_SCRIPT" service non-existent-service
-    [ "$status" -eq 0 ]  # Shows help instead of failing
-    [[ "$output" =~ "Usage:" ]] || [[ "$output" =~ "Service script not found" ]]
+    [ "$status" -eq 1 ]  # Should return error exit code for invalid service
+    [[ "$output" =~ "Usage:" ]] && [[ "$output" =~ "Service name required" ]]
 }
 
 @test "should list available services in status" {
